@@ -107,17 +107,17 @@ public class PublisherController {
     public ResponseEntity<?> searchPublisher(@RequestParam String name,
                                              @RequestHeader(value = "trace-Id") String traceId,
                                              @RequestHeader(value = "Authorization") String bearerToken)
-        throws LibraryResourceBadRequestException {
+            throws LibraryResourceBadRequestException {
 
-        if (!LibraryApiUtils.doesStringValueExist(traceId)){
-            traceId= UUID.randomUUID().toString();
+        if (!LibraryApiUtils.doesStringValueExist(traceId)) {
+            traceId = UUID.randomUUID().toString();
         }
 
-        if(!LibraryApiUtils.doesStringValueExist(name)){
+        if (!LibraryApiUtils.doesStringValueExist(name)) {
             logger.error("name does not exist. Trace ID {}", traceId);
-            throw new LibraryResourceBadRequestException(traceId, "name does not exist"+name);
+            throw new LibraryResourceBadRequestException(traceId, "name does not exist" + name);
         }
-logger.debug("Returning response for trace id: {}", traceId);
-        return new ResponseEntity<>(publisherService.searchPublisher(name,traceId), HttpStatus.OK);
+        logger.debug("Returning response for trace id: {}", traceId);
+        return new ResponseEntity<>(publisherService.searchPublisher(name, traceId), HttpStatus.OK);
     }
 }
