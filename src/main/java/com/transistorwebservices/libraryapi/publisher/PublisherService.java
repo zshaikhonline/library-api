@@ -6,9 +6,13 @@ import com.transistorwebservices.libraryapi.util.LibraryApiUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class PublisherService {
@@ -79,5 +83,35 @@ public class PublisherService {
             throw new LibraryResourceNotFoundException(traceId, "Publisher Id :" + publisherToBeUpdated.getPublisherId() + " Not found ");
 
         }
+    }
+
+    public void deletePublisher(Integer publisherToBeDeleted, String traceId)
+            throws LibraryResourceNotFoundException {
+        try {
+            publisherRepository.deleteById(publisherToBeDeleted);
+        } catch (EmptyResultDataAccessException e) {
+            logger.error("trace id : {}, publisher id : {} Not found", traceId, publisherToBeDeleted, e);
+            throw new LibraryResourceNotFoundException(traceId, "pubisher id: " + publisherToBeDeleted + "Not found");
+        }
+    }
+
+    public List<Object> searchPublisher(String name, String traceId) {
+        List<PublisherEntity> publisherEntities = null;
+
+        if (!LibraryApiUtils.doesStringValueExist(name)) {
+            publisherRepository.findByNameContaining(name);
+        }
+        if (publisherEntities != null && publisherEntities.size() > 0) {
+            return createPublisherFromSearchResponse(publisherEntities);
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
+    private List<Object> createPublisherFromSearchResponse(List<PublisherEntity> publisherEntities) {
+
+        return publisherEntities.stream()
+                .map(pe -> createPublisherFromEntity(pe))
+                .collect(Collectors.toList());
     }
 }

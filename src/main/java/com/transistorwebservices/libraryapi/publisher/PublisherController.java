@@ -1,6 +1,7 @@
 package com.transistorwebservices.libraryapi.publisher;
 
 import com.transistorwebservices.libraryapi.exception.LibraryResourceAlreadyExistException;
+import com.transistorwebservices.libraryapi.exception.LibraryResourceBadRequestException;
 import com.transistorwebservices.libraryapi.exception.LibraryResourceNotFoundException;
 import com.transistorwebservices.libraryapi.exception.LibraryResourceUnauthorizedException;
 import com.transistorwebservices.libraryapi.util.LibraryApiUtils;
@@ -69,15 +70,54 @@ public class PublisherController {
         if (!LibraryApiUtils.doesStringValueExist(traceId)) {
             traceId = UUID.randomUUID().toString();
         }
-        if(!LibraryApiUtils.isUserAdmin(bearerToken)){
-logger.error(LibraryApiUtils.getUserIdFromClaim(bearerToken)+ "Not allowed to update since user is not an admin");
-throw new LibraryResourceUnauthorizedException(traceId, " User not allowed to update a publisher");
+        if (!LibraryApiUtils.isUserAdmin(bearerToken)) {
+            logger.error(LibraryApiUtils.getUserIdFromClaim(bearerToken) + "Not allowed to update since user is not an admin");
+            throw new LibraryResourceUnauthorizedException(traceId, " User not allowed to update a publisher");
         }
-        logger.debug("Added traceId: {}" , traceId);
+        logger.debug("Added traceId: {}", traceId);
 
         publisher.setPublisherId(publisherId);
         publisherService.updatePublisher(publisher, traceId);
-    logger.debug("Returning Response for traceId: {} " ,traceId);
-return new ResponseEntity<>(publisher, HttpStatus.OK);
+        logger.debug("Returning Response for traceId: {} ", traceId);
+        return new ResponseEntity<>(publisher, HttpStatus.OK);
+    }
+
+    @DeleteMapping(path = "/publisherId")
+    public ResponseEntity<?> deletePublisher(@PathVariable Integer publisherId,
+                                             @RequestHeader(value = "trace-Id", defaultValue = "") String traceId,
+                                             @RequestHeader(value = "Authorization") String bearerToken)
+            throws LibraryResourceNotFoundException, LibraryResourceUnauthorizedException {
+
+        if (!LibraryApiUtils.doesStringValueExist(traceId)) {
+            traceId = UUID.randomUUID().toString();
+        }
+
+        if (!LibraryApiUtils.isUserAdmin(bearerToken)) {
+            logger.error(LibraryApiUtils.getUserIdFromClaim(bearerToken) + "Not allowed to delete since user is not an admin");
+            throw new LibraryResourceUnauthorizedException(traceId, "User not allowed to delete entry");
+        }
+        logger.debug("Added traceId: {}", traceId);
+
+        publisherService.deletePublisher(publisherId, traceId);
+        logger.debug("trace id : {}", traceId);
+        return new ResponseEntity<>(HttpStatus.ACCEPTED);
+    }
+
+    @GetMapping(path = "/search")
+    public ResponseEntity<?> searchPublisher(@RequestParam String name,
+                                             @RequestHeader(value = "trace-Id") String traceId,
+                                             @RequestHeader(value = "Authorization") String bearerToken)
+        throws LibraryResourceBadRequestException {
+
+        if (!LibraryApiUtils.doesStringValueExist(traceId)){
+            traceId= UUID.randomUUID().toString();
+        }
+
+        if(!LibraryApiUtils.doesStringValueExist(name)){
+            logger.error("name does not exist. Trace ID {}", traceId);
+            throw new LibraryResourceBadRequestException(traceId, "name does not exist"+name);
+        }
+logger.debug("Returning response for trace id: {}", traceId);
+        return new ResponseEntity<>(publisherService.searchPublisher(name,traceId), HttpStatus.OK);
     }
 }
