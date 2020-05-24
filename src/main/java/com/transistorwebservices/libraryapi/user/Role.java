@@ -1,5 +1,8 @@
 package com.transistorwebservices.libraryapi.user;
 
+/**
+ * @Author: coffee@2am
+ */
 public enum Role {
 
     ADMIN("Admin"),
